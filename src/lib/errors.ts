@@ -4,7 +4,8 @@ export class PublicError extends Error {
   }
 }
 
-enum ERROR_MESSAGES {
+export enum ERROR_MESSAGES {
+  GenericError = 'Something went wrong',
   AuthenticationError = 'You must be logged in to view this content',
   InvalidTokenError = 'The token is missing or invalid',
   ExpiredTokenError = 'The token has expired',

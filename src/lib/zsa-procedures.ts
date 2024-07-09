@@ -1,7 +1,11 @@
 import { env } from '@/config/env';
 import { createServerActionProcedure } from 'zsa';
-import { PublicError } from './errors';
+import { ERROR_MESSAGES, PublicError } from './errors';
 import { assertAuthenticated } from './session';
+
+export function getDevOnlyErrorMsg(msg: string) {
+  return `DEV ONLY ENABLED - ${msg}`;
+}
 
 function shapeErrors({ err }: any) {
   const isAllowedError = err instanceof PublicError;
@@ -11,12 +15,12 @@ function shapeErrors({ err }: any) {
     console.error(err);
     return {
       code: err.code ?? 'ERROR',
-      message: `${isDev ? 'DEV ONLY ENABLED - ' : ''}${err.message}`,
+      message: isDev ? getDevOnlyErrorMsg(err.message) : err.message,
     };
   } else {
     return {
       code: 'ERROR',
-      message: 'Something went wrong',
+      message: ERROR_MESSAGES.GenericError,
     };
   }
 }
