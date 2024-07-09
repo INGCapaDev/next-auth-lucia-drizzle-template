@@ -1,11 +1,12 @@
 // import ProfileDropdown from '@/components/auth/ProfileDropdown';
 import { Button } from '@/components/ui/button';
-// import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser } from '@/lib/session';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
 async function HeaderActions() {
-  // const user = await getCurrentUser();
-  const isSignedIn = true;
+  const user = await getCurrentUser();
+  const isSignedIn = !!user;
 
   return (
     <>
@@ -14,12 +15,12 @@ async function HeaderActions() {
           <div className='hidden md:block'>
             {/* { TODO: Implement Toggle Theme Button} */}
           </div>
-          {/* <Suspense
+          <Suspense
             fallback={
               <div className='h-8 w-8 rounded-full bg-gray-300 animate-pulse'></div>
             }>
-            <ProfileDropdown />
-          </Suspense> */}
+            {/* <ProfileDropdown /> */}
+          </Suspense>
           <div className='md:hidden'></div>
         </>
       ) : (

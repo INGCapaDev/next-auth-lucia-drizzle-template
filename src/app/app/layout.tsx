@@ -1,6 +1,6 @@
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/header/Header';
-// import { getCurrentUser } from '@/lib/session';
+import { protectedRoute } from '@/lib/session';
 import { FC } from 'react';
 
 type LayoutAppProps = {
@@ -8,10 +8,7 @@ type LayoutAppProps = {
 };
 
 const LayoutApp: FC<LayoutAppProps> = async ({ children }) => {
-  // const user = await getCurrentUser();
-  // if (!user) {
-  //   return redirect('/login');
-  // }
+  await protectedRoute();
   return (
     <div className='grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]'>
       <Sidebar />
