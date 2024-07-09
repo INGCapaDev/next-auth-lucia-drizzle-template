@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:push:dev": "drizzle-kit push --config ./src/database/dev.config.ts",
+    "db:generate:prod": "drizzle-kit generate --config ./src/database/prod.config.ts",
+    "db:migrate:prod": "drizzle-kit migrate --config ./src/database/prod.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

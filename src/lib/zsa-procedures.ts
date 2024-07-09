@@ -9,7 +9,9 @@ function shapeErrors({ err }: any) {
   // let's all errors pass through to the UI so debugging locally is easier
   const isDev = env.NODE_ENV === 'development';
   if (isAllowedError || isDev) {
-    console.error(err);
+    console.log('------------ERROR------------');
+    console.error(err?.message ?? err);
+    console.log('------------ERROR------------');
     return {
       code: err.code ?? 'ERROR',
       message: isDev ? getDevOnlyErrorMsg(err.message) : err.message,

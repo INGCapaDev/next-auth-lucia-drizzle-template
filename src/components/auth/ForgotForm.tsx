@@ -24,6 +24,19 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 
+const FORGOT_FORM_STRINGS = {
+  title: 'Reset Password',
+  label: 'Send an email to reset your password',
+  backButtonLabel: 'Remember your password? Go to login',
+  successMessage: 'We have sent you an email with the reset link',
+  loadingMessage: 'Sending email...',
+  errorMessage: "We couldn't send you the reset token.",
+  errorDescription: 'An error occurred. Please try again later.',
+  emailFormLabel: 'Email',
+  pendingButton: 'Sending email...',
+  submitButton: 'Send Email',
+};
+
 const ForgotForm = () => {
   const { isPending, execute, error } = useServerAction(forgetPassword, {
     onError: ({ err }) => {
@@ -45,17 +58,17 @@ const ForgotForm = () => {
   });
 
   async function onSubmit(values: z.infer<typeof ForgotPasswordSchema>) {
-    toast.loading('Sending email...');
+    toast.loading(FORGOT_FORM_STRINGS.loadingMessage);
     await execute(values);
     toast.dismiss();
   }
 
   return (
     <CardWrapper
-      label='Send an email to reset your password'
-      title='Reset Password'
+      label={FORGOT_FORM_STRINGS.label}
+      title={FORGOT_FORM_STRINGS.title}
       backButtonHref='/login'
-      backButtonLabel='Remember your password? Go to login'>
+      backButtonLabel={FORGOT_FORM_STRINGS.backButtonLabel}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
           <div className='space-y-4'>
@@ -64,7 +77,7 @@ const ForgotForm = () => {
               name='email'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{FORGOT_FORM_STRINGS.emailFormLabel}</FormLabel>
                   <FormControl>
                     <Input
                       {...field}
@@ -80,16 +93,16 @@ const ForgotForm = () => {
           {error && (
             <Alert variant='destructive'>
               <Terminal className='h-4 w-4' />
-              <AlertTitle>
-                We couldn&apos;t send you the reset token.
-              </AlertTitle>
+              <AlertTitle>{FORGOT_FORM_STRINGS.errorMessage}</AlertTitle>
               <AlertDescription>
-                {error.message || 'An error occurred. Please try again later.'}
+                {error.message || FORGOT_FORM_STRINGS.errorDescription}
               </AlertDescription>
             </Alert>
           )}
           <Button type='submit' className='w-full' disabled={isPending}>
-            {isPending ? 'Loading...' : 'Send Email'}
+            {isPending
+              ? FORGOT_FORM_STRINGS.pendingButton
+              : FORGOT_FORM_STRINGS.submitButton}
           </Button>
         </form>
       </Form>
