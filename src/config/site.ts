@@ -1,3 +1,5 @@
+import { Metadata } from 'next';
+
 enum SIDEBAR_ICONS {
   Inbox = 'inbox',
 }
@@ -9,6 +11,7 @@ enum MOBILE_MENU_ICONS {
 export const site = {
   title: 'FTA App',
   description: 'A fullstack app with NextJS, Lucia Auth and Drizzle.',
+  lang: 'en',
   sidebar: {
     links: [{ href: '/app', label: 'Home', icon: SIDEBAR_ICONS.Inbox }],
   },
@@ -18,3 +21,8 @@ export const site = {
   afterLoginRedirect: '/app',
 } as const;
 export type SiteConfig = typeof site;
+
+export const customMetadata: Metadata = {
+  title: site.title,
+  description: site.description,
+};

@@ -1,6 +1,5 @@
 import { env } from '@/config/env';
 import { createClient } from '@libsql/client';
-import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/libsql';
 import 'server-only';
 import * as schema from './schema';
