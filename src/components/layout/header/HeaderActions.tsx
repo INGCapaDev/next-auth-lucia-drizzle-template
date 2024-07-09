@@ -1,4 +1,4 @@
-// import ProfileDropdown from '@/components/auth/ProfileDropdown';
+import ProfileDropdown from '@/components/auth/ProfileDropdown';
 import { Button } from '@/components/ui/button';
 import { getCurrentUser } from '@/lib/session';
 import Link from 'next/link';
@@ -19,7 +19,7 @@ async function HeaderActions() {
             fallback={
               <div className='h-8 w-8 rounded-full bg-gray-300 animate-pulse'></div>
             }>
-            {/* <ProfileDropdown /> */}
+            <ProfileDropdown />
           </Suspense>
           <div className='md:hidden'></div>
         </>

@@ -1,6 +1,6 @@
 'use client';
 
-// import { resetPassword } from '@/app/(auth)/reset-password/actions';
+import { resetPassword } from '@/app/(auth)/reset-password/actions';
 import {
   Form,
   FormControl,

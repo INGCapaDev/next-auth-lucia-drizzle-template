@@ -2,10 +2,7 @@ import { env } from '@/config/env';
 import { createServerActionProcedure } from 'zsa';
 import { ERROR_MESSAGES, PublicError } from './errors';
 import { assertAuthenticated } from './session';
-
-export function getDevOnlyErrorMsg(msg: string) {
-  return `DEV ONLY ENABLED - ${msg}`;
-}
+import { getDevOnlyErrorMsg } from './utils';
 
 function shapeErrors({ err }: any) {
   const isAllowedError = err instanceof PublicError;

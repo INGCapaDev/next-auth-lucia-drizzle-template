@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/form';
 import CardWrapper from './CardWrapper';
 
-// import { getVerificationToken } from '@/app/(auth)/email-verification/actions';
+import { getVerificationToken } from '@/app/(auth)/email-verification/actions';
 import { ForgotPasswordSchema } from '@/lib/validations/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Terminal } from 'lucide-react';

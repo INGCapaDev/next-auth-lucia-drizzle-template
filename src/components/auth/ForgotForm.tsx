@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/form';
 import CardWrapper from './CardWrapper';
 
-// import { forgetPassword } from '@/app/(auth)/forgot-password/actions';
+import { forgetPassword } from '@/app/(auth)/forgot-password/actions';
 
 import { ForgotPasswordSchema } from '@/lib/validations/auth';
 import { zodResolver } from '@hookform/resolvers/zod';

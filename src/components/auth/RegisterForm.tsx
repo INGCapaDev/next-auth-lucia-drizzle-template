@@ -1,6 +1,6 @@
 'use client';
 
-// import { signup } from '@/app/(auth)/register/actions';
+import { signup } from '@/app/(auth)/register/actions';
 import {
   Form,
   FormControl,

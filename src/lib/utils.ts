@@ -41,3 +41,7 @@ export async function generateRandomToken(length: number) {
   });
   return buffer.toString('hex');
 }
+
+export function getDevOnlyErrorMsg(msg: string) {
+  return `DEV ONLY ENABLED - ${msg}`;
+}
