@@ -71,17 +71,23 @@ export const sessionsTable = sqliteTable('session', {
 
 const tokenFields = {
   id: idField(),
+  tokenExpiresAt: dateRequiredField('token_expires_at'),
+};
+
+export const resetTokensTable = sqliteTable('reset_tokens', {
   userID: text('user_id')
     .references(() => usersTable.id, { onDelete: 'cascade' })
     .unique()
     .notNull(),
   token: text('token').notNull().unique(),
-  tokenExpiresAt: dateRequiredField('token_expires_at'),
-};
+  ...tokenFields,
+});
 
-export const resetTokensTable = sqliteTable('reset_tokens', tokenFields);
-
-export const verificationTokensTable = sqliteTable(
-  'verification_tokens',
-  tokenFields
-);
+export const verificationTokensTable = sqliteTable('verification_tokens', {
+  userID: text('user_id')
+    .references(() => usersTable.id, { onDelete: 'cascade' })
+    .unique()
+    .notNull(),
+  token: text('token').notNull().unique(),
+  ...tokenFields,
+});
