@@ -4,63 +4,52 @@ import {
   VERIFY_EMAIL_TTL,
 } from '@/lib/constants/crypto';
 import { generateRandomToken } from '@/lib/utils';
-import { ResetTokensRepository } from '../repositories/resetTokensRepository';
-import { VerifyTokensRepository } from '../repositories/verifyTokensRepository';
+import {
+  createResetToken,
+  deleteResetToken,
+  deleteResetTokensByUserID,
+  getResetToken,
+} from '../repositories/resetTokensRepository';
+import {
+  createVerificationToken,
+  deleteVerificationToken,
+  deleteVerificationTokensByUserID,
+  getVerificationToken,
+} from '../repositories/verifyTokensRepository';
 
-export class TokenService {
-  private _verifyTokensRepository: VerifyTokensRepository;
-  private _resetTokensRepository: ResetTokensRepository;
+async function getToken(expiration: number) {
+  const token = await generateRandomToken(TOKEN_LENGTH);
+  if (!token) throw new Error('Failed to generate token');
+  const tokenExpiresAt = new Date(Date.now() + expiration);
+  return { token, tokenExpiresAt };
+}
 
-  constructor(
-    verifyTokensRepository: VerifyTokensRepository,
-    resetTokensRepository: ResetTokensRepository
-  ) {
-    this._verifyTokensRepository = verifyTokensRepository;
-    this._resetTokensRepository = resetTokensRepository;
-  }
+export async function createVerificationTokenService(userID: string) {
+  const { token, tokenExpiresAt } = await getToken(VERIFY_EMAIL_TTL);
+  await deleteVerificationTokensByUserID(userID);
+  await createVerificationToken(userID, token, tokenExpiresAt);
+  return token;
+}
 
-  private async getToken(expiration: number) {
-    const token = await generateRandomToken(TOKEN_LENGTH);
-    if (!token) throw new Error('Failed to generate token');
-    const tokenExpiresAt = new Date(Date.now() + expiration);
-    return { token, tokenExpiresAt };
-  }
+export async function createResetTokenService(userID: string) {
+  const { token, tokenExpiresAt } = await getToken(RESET_PASSWORD_TTL);
+  await deleteResetTokensByUserID(userID);
+  await createResetToken(userID, token, tokenExpiresAt);
+  return token;
+}
 
-  async createVerificationToken(userID: string) {
-    const { token, tokenExpiresAt } = await this.getToken(VERIFY_EMAIL_TTL);
-    await this._verifyTokensRepository.deleteTokensByUserID(userID);
-    await this._verifyTokensRepository.createVerificationToken(
-      userID,
-      token,
-      tokenExpiresAt
-    );
-    return token;
-  }
+export async function getVerificationTokenService(token: string) {
+  return getVerificationToken(token);
+}
 
-  async createResetToken(userID: string) {
-    const { token, tokenExpiresAt } = await this.getToken(RESET_PASSWORD_TTL);
-    await this._resetTokensRepository.deleteTokensByUserID(userID);
-    await this._resetTokensRepository.createResetToken(
-      userID,
-      token,
-      tokenExpiresAt
-    );
-    return token;
-  }
+export async function getResetTokenService(token: string) {
+  return getResetToken(token);
+}
 
-  async getVerificationToken(token: string) {
-    return this._verifyTokensRepository.getVerificationToken(token);
-  }
+export async function deleteVerificationTokenService(token: string, trx?: any) {
+  return deleteVerificationToken(token, trx);
+}
 
-  async getResetToken(token: string) {
-    return this._resetTokensRepository.getResetToken(token);
-  }
-
-  async deleteVerificationToken(token: string, trx?: any) {
-    return this._verifyTokensRepository.deleteVerificationToken(token, trx);
-  }
-
-  async deleteResetToken(token: string, trx?: any) {
-    return this._resetTokensRepository.deleteResetToken(token, trx);
-  }
+export async function deleteResetTokenService(token: string, trx?: any) {
+  return deleteResetToken(token, trx);
 }

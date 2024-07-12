@@ -1,6 +1,6 @@
 'use client';
 
-import { resetPassword } from '@/app/(auth)/reset-password/actions';
+import { resetPasswordAction } from '@/app/(auth)/reset-password/actions';
 import {
   Form,
   FormControl,
@@ -39,7 +39,7 @@ const RESET_FORM_STRINGS = {
 const ResetForm = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get('token') ?? '';
-  const { isPending, execute, error } = useServerAction(resetPassword, {
+  const { isPending, execute, error } = useServerAction(resetPasswordAction, {
     onError: ({ err }) => {
       toast.error(err.message);
     },

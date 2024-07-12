@@ -21,3 +21,8 @@ export const booleanField = (fieldName: string) =>
   text(fieldName)
     .$type<boolean>()
     .$default(() => false);
+
+export const booleanDefTrueField = (fieldName: string) =>
+  text(fieldName)
+    .$type<boolean>()
+    .$default(() => true);

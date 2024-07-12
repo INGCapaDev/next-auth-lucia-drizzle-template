@@ -1,16 +1,17 @@
 'use client';
 import { site } from '@/config/site';
 import { cn } from '@/lib/utils';
-import { Inbox, LinkIcon, ShellIcon } from 'lucide-react';
+import { LeafIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { FC } from 'react';
+import { MENU_ICONS } from './mobileMenu/MenuIcons';
 
-const ICONS = {
-  inbox: <Inbox className='h-4 w-4' />,
-  default: <LinkIcon className='h-4 w-4' />,
-} as const;
+type SidebarProps = {
+  isUserAdmin: boolean;
+};
 
-const Sidebar = () => {
+const Sidebar: FC<SidebarProps> = ({ isUserAdmin }) => {
   const pathname = usePathname();
   const handleClass = (path: string) => {
     return path === pathname
@@ -22,21 +23,22 @@ const Sidebar = () => {
       <div className='flex h-full max-h-screen flex-col gap-2'>
         <div className='flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6'>
           <Link href='/' className='flex items-center gap-2 font-semibold'>
-            <ShellIcon className='h-6 w-6' />
+            <LeafIcon className='h-6 w-6 text-primary' />
             <span className=''>{site.title}</span>
           </Link>
         </div>
         <div className='flex-1'>
           <nav className='grid items-start px-2 text-sm font-medium lg:px-4'>
-            {site.sidebar.links.map(({ href, label, icon }) => (
+            {site.menus.links.map(({ href, label, icon, admin }) => (
               <Link
                 key={`sidebar-link-${href}`}
                 href={href}
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary',
-                  handleClass(href)
+                  handleClass(href),
+                  !isUserAdmin && admin && 'hidden'
                 )}>
-                {ICONS[icon] || ICONS.default}
+                {MENU_ICONS[icon] || MENU_ICONS.default}
                 <span>{label}</span>
               </Link>
             ))}

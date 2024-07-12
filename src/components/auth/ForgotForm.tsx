@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/form';
 import CardWrapper from './CardWrapper';
 
-import { forgetPassword } from '@/app/(auth)/forgot-password/actions';
+import { forgotPasswordAction } from '@/app/(auth)/forgot-password/actions';
 
 import { ForgotPasswordSchema } from '@/lib/validations/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,7 +38,7 @@ const FORGOT_FORM_STRINGS = {
 };
 
 const ForgotForm = () => {
-  const { isPending, execute, error } = useServerAction(forgetPassword, {
+  const { isPending, execute, error } = useServerAction(forgotPasswordAction, {
     onError: ({ err }) => {
       toast.error(err.message);
     },

@@ -1,84 +1,78 @@
-import { TursoDB, db } from '@/database/db';
+import { db } from '@/database/db';
 import { accountsTable } from '@/database/schema';
 import { EmailAccount, GoogleAccount } from '@/database/types';
 
 import { and, eq } from 'drizzle-orm';
-import { IAccountsRepository } from '.';
 
-export class AccountsRepository implements IAccountsRepository {
-  private db: TursoDB = db;
-  private schema = accountsTable;
+export async function createAccount(
+  userID: string,
+  password: string,
+  accountType: EmailAccount,
+  salt: string
+) {
+  const [account] = await db
+    .insert(accountsTable)
+    .values({
+      userID,
+      password,
+      salt,
+      accountType,
+    })
+    .returning();
 
-  async createAccount(
-    userID: string,
-    password: string,
-    accountType: EmailAccount,
-    salt: string
-  ) {
-    const [account] = await this.db
-      .insert(this.schema)
-      .values({
-        userID,
-        password,
-        salt,
-        accountType,
-      })
-      .returning();
+  return account;
+}
 
-    return account;
-  }
+export async function createAccountViaGoogle(
+  userID: string,
+  googleID: string,
+  accountType: GoogleAccount
+) {
+  await db
+    .insert(accountsTable)
+    .values({
+      userID,
+      googleID,
+      accountType,
+    })
+    .execute();
+}
 
-  async createAccountViaGoogle(
-    userID: string,
-    googleID: string,
-    accountType: GoogleAccount
-  ) {
-    await this.db
-      .insert(this.schema)
-      .values({
-        userID,
-        googleID,
-        accountType,
-      })
-      .execute();
-  }
+export async function getAccountByUserID(userID: string) {
+  return await db.query.accountsTable.findFirst({
+    where: eq(accountsTable.userID, userID),
+  });
+}
 
-  async getAccountByUserID(userID: string) {
-    return await this.db.query.accountsTable.findFirst({
-      where: eq(this.schema.userID, userID),
-    });
-  }
+export async function getPasswordAccountByUserID(userID: string) {
+  return await db.query.accountsTable.findFirst({
+    where: and(
+      eq(accountsTable.userID, userID),
+      eq(accountsTable.accountType, 'email')
+    ),
+  });
+}
 
-  async getPasswordAccountByUserID(userID: string) {
-    return await this.db.query.accountsTable.findFirst({
-      where: and(
-        eq(this.schema.userID, userID),
-        eq(this.schema.accountType, 'email')
-      ),
-    });
-  }
+export async function getAccountByGoogleID(googleID: string) {
+  return await db.query.accountsTable.findFirst({
+    where: eq(accountsTable.googleID, googleID),
+  });
+}
 
-  async getAccountByGoogleID(googleID: string) {
-    return await this.db.query.accountsTable.findFirst({
-      where: eq(this.schema.googleID, googleID),
-    });
-  }
-
-  async updatePassword(
-    userID: string,
-    password: string,
-    salt: string,
-    trx = this.db
-  ) {
-    await trx
-      .update(this.schema)
-      .set({ password, salt })
-      .where(
-        and(
-          eq(this.schema.userID, userID),
-          eq(this.schema.accountType, 'email')
-        )
+export async function updatePassword(
+  userID: string,
+  password: string,
+  salt: string,
+  trx = db
+) {
+  await trx
+    .update(accountsTable)
+    .set({ password, salt })
+    .where(
+      and(
+        eq(accountsTable.userID, userID),
+        eq(accountsTable.accountType, 'email')
       )
-      .execute();
-  }
+    )
+    .execute();
 }

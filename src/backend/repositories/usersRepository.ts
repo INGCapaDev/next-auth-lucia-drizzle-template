@@ -1,50 +1,41 @@
-import { TursoDB, db } from '@/database/db';
+import { db, TursoDB } from '@/database/db';
 import { usersTable } from '@/database/schema';
 import { UpdateUser } from '@/database/types';
 import { eq } from 'drizzle-orm';
-import { IUsersRepository } from '.';
 
-export class UsersRepository implements IUsersRepository {
-  private db: TursoDB = db;
-  private schema = usersTable;
+export async function getUser(userID: string) {
+  return await db.query.usersTable.findFirst({
+    where: eq(usersTable.id, userID),
+  });
+}
 
-  async getUser(userID: string) {
-    return await this.db.query.usersTable.findFirst({
-      where: eq(this.schema.id, userID),
-    });
-  }
+export async function createUser(email: string) {
+  const [user] = await db
+    .insert(usersTable)
+    .values({
+      email,
+    })
+    .returning();
+  return user;
+}
 
-  async createUser(email: string) {
-    const [user] = await this.db
-      .insert(this.schema)
-      .values({
-        email,
-      })
-      .returning();
-    return user;
-  }
+export async function deleteUser(userID: string) {
+  await db.delete(usersTable).where(eq(usersTable.id, userID));
+}
 
-  async deleteUser(userID: string) {
-    await this.db.delete(this.schema).where(eq(this.schema.id, userID));
-  }
+export async function getUserByEmail(email: string) {
+  return await db.query.usersTable.findFirst({
+    where: eq(usersTable.email, email),
+  });
+}
 
-  async getUserByEmail(email: string) {
-    return await this.db.query.usersTable.findFirst({
-      where: eq(this.schema.email, email),
-    });
-  }
+export async function updateUser(userID: string, updatedUser: UpdateUser) {
+  await db.update(usersTable).set(updatedUser).where(eq(usersTable.id, userID));
+}
 
-  async updateUser(userID: string, updatedUser: UpdateUser) {
-    await this.db
-      .update(this.schema)
-      .set(updatedUser)
-      .where(eq(this.schema.id, userID));
-  }
-
-  async verifyEmail(userID: string, trx: TursoDB = this.db) {
-    await trx
-      .update(this.schema)
-      .set({ emailVerified: new Date() })
-      .where(eq(this.schema.id, userID));
-  }
+export async function verifyEmail(userID: string, trx: TursoDB = db) {
+  await trx
+    .update(usersTable)
+    .set({ emailVerified: new Date() })
+    .where(eq(usersTable.id, userID));
 }

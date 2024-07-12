@@ -1,4 +1,7 @@
-import { ServiceLocator } from '@/backend/services/serviceLocator';
+import {
+  createGoogleUserService,
+  getAccountByGoogleIdService,
+} from '@/backend/services/authenticationService';
 import { site } from '@/config/site';
 import { googleAuth } from '@/lib/auth';
 import { setSession } from '@/lib/session';
@@ -6,9 +9,6 @@ import { OAuth2RequestError } from 'arctic';
 import { cookies } from 'next/headers';
 
 export async function GET(request: Request): Promise<Response> {
-  const authenticationService = ServiceLocator.getService(
-    'AuthenticationService'
-  );
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
   const state = url.searchParams.get('state');
@@ -42,9 +42,7 @@ export async function GET(request: Request): Promise<Response> {
     );
     const googleUser: GoogleUser = await response.json();
 
-    const existingAccount = await authenticationService.getAccountByGoogleId(
-      googleUser.sub
-    );
+    const existingAccount = await getAccountByGoogleIdService(googleUser.sub);
 
     if (existingAccount) {
       await setSession(existingAccount.userID);
@@ -56,7 +54,7 @@ export async function GET(request: Request): Promise<Response> {
       });
     }
 
-    const { id } = await authenticationService.createGoogleUser(googleUser);
+    const { id } = await createGoogleUserService(googleUser);
     await setSession(id);
     return new Response(null, {
       status: 302,

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/form';
 import CardWrapper from './CardWrapper';
 
-import { signin } from '@/app/(auth)/login/actions';
+import { signInAction } from '@/app/(auth)/login/actions';
 import { ERROR_MESSAGES } from '@/lib/errors';
 import { cn, getDevOnlyErrorMsg } from '@/lib/utils';
 import { SignInWithPasswordFormSchema } from '@/lib/validations/auth';
@@ -71,7 +71,7 @@ const LoginForm = () => {
     };
   }, [startCount, count]);
 
-  const { isPending, execute, error } = useServerAction(signin, {
+  const { isPending, execute, error } = useServerAction(signInAction, {
     onError({ err }) {
       toast.error(err.message);
       if (

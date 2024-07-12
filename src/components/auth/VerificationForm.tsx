@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/form';
 import CardWrapper from './CardWrapper';
 
-import { getVerificationToken } from '@/app/(auth)/email-verification/actions';
+import { getVerificationTokenAction } from '@/app/(auth)/email-verification/actions';
 import { ForgotPasswordSchema } from '@/lib/validations/auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Terminal } from 'lucide-react';
@@ -37,17 +37,20 @@ const VERIFICATION_FORM_STRINGS = {
 };
 
 const VerificationForm = () => {
-  const { isPending, execute, error } = useServerAction(getVerificationToken, {
-    onError: ({ err }) => {
-      toast.error(err.message);
-    },
-    onSuccess: ({ data }) => {
-      toast.message(data.message, {
-        description: data.emailLink,
-      });
-      redirect('/login');
-    },
-  });
+  const { isPending, execute, error } = useServerAction(
+    getVerificationTokenAction,
+    {
+      onError: ({ err }) => {
+        toast.error(err.message);
+      },
+      onSuccess: ({ data }) => {
+        toast.message(data.message, {
+          description: data.emailLink,
+        });
+        redirect('/login');
+      },
+    }
+  );
 
   const form = useForm({
     resolver: zodResolver(ForgotPasswordSchema),

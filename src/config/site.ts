@@ -1,22 +1,24 @@
 import { Metadata } from 'next';
 
-enum SIDEBAR_ICONS {
+enum MENU_ICONS {
   Inbox = 'inbox',
-}
-
-enum MOBILE_MENU_ICONS {
-  Inbox = 'inbox',
+  Posts = 'posts',
 }
 
 export const site = {
-  title: 'FTA App',
-  description: 'A fullstack app with NextJS, Lucia Auth and Drizzle.',
+  title: 'FTAApp',
+  description:
+    'A boilerplate for fullstack aplications with Next.js, Lucia Auth, and Drizzle, with a SQLite database by default.',
   lang: 'en',
-  sidebar: {
-    links: [{ href: '/app', label: 'Home', icon: SIDEBAR_ICONS.Inbox }],
-  },
-  mobileMenu: {
-    links: [{ href: '/app', label: 'Home', icon: MOBILE_MENU_ICONS.Inbox }],
+  menus: {
+    links: [
+      {
+        href: '/app',
+        label: 'Home',
+        icon: MENU_ICONS.Inbox,
+        admin: false,
+      },
+    ],
   },
   afterLoginRedirect: '/app',
 } as const;

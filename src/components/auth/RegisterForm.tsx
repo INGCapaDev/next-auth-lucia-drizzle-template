@@ -1,6 +1,6 @@
 'use client';
 
-import { signup } from '@/app/(auth)/register/actions';
+import { signUpAction } from '@/app/(auth)/register/actions';
 import {
   Form,
   FormControl,
@@ -38,7 +38,7 @@ const REGISTER_FORM_STRINGS = {
 };
 
 const RegisterForm = () => {
-  const { isPending, execute, error } = useServerAction(signup, {
+  const { isPending, execute, error } = useServerAction(signUpAction, {
     onError({ err }) {
       toast.error(err.message);
     },

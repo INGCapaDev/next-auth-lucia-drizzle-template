@@ -1,4 +1,4 @@
-import { ServiceLocator } from '@/backend/services/serviceLocator';
+import { verifyEmailService } from '@/backend/services/authenticationService';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,10 +17,7 @@ export async function GET(request: Request): Promise<Response> {
       });
     }
 
-    const authenticationService = ServiceLocator.getService(
-      'AuthenticationService'
-    );
-    await authenticationService.verifyEmail(token);
+    await verifyEmailService(token);
 
     return new Response(null, {
       status: 302,

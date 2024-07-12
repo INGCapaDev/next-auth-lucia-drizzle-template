@@ -1,15 +1,11 @@
 'use server';
 
-import { ServiceLocator } from '@/backend/services/serviceLocator';
+import { changePasswordService } from '@/backend/services/authenticationService';
 import { ResetPasswordSchema } from '@/lib/validations/auth';
 import { baseAction } from '@/lib/zsa-procedures';
 
-export const resetPassword = baseAction
+export const resetPasswordAction = baseAction
   .input(ResetPasswordSchema)
   .handler(async ({ input }) => {
-    const authenticationService = ServiceLocator.getService(
-      'AuthenticationService'
-    );
-
-    await authenticationService.changePassword(input.password, input.token);
+    await changePasswordService(input.password, input.token);
   });

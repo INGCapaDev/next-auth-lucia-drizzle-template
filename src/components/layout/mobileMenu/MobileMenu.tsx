@@ -2,17 +2,18 @@
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { site } from '@/config/site';
-import { Inbox, LinkIcon, Menu, ShellIcon } from 'lucide-react';
+import { Menu, ShellIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { FC } from 'react';
 import MenuElement from './MenuElement';
+import { MENU_ICONS } from './MenuIcons';
 
-const MOBILE_MENU_ICONS = {
-  inbox: <Inbox className='h-5 w-5' />,
-  default: <LinkIcon className='h-5 w-5' />,
+type MobileMenuProps = {
+  isUserAdmin: boolean;
 };
 
-const MobileMenu = () => {
+const MobileMenu: FC<MobileMenuProps> = ({ isUserAdmin }) => {
   const pathname = usePathname();
 
   return (
@@ -32,12 +33,13 @@ const MobileMenu = () => {
             {site.title}
           </Link>
 
-          {site.mobileMenu.links.map(({ href, label, icon }) => (
+          {site.menus.links.map(({ href, label, icon, admin }) => (
             <MenuElement
               key={`mobile-menu-link-${href}`}
               isActive={pathname == href}
+              isHidden={!isUserAdmin && admin}
               href={href}>
-              {MOBILE_MENU_ICONS[icon] || MOBILE_MENU_ICONS.default}
+              {MENU_ICONS[icon] || MENU_ICONS.default}
               {label}
             </MenuElement>
           ))}

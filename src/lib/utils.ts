@@ -14,6 +14,11 @@ export const parseSQLiteBoolean = (
   return true;
 };
 
+export const parseSQLiteDate = (value: string | Date) => {
+  if (typeof value === 'string') return new Date(Number(value));
+  return value;
+};
+
 export async function hashPassword(plainTextPassword: string, salt: string) {
   return new Promise<string>((resolve, reject) => {
     crypto.pbkdf2(

@@ -17,7 +17,7 @@ const SignOutPage = () => {
       title={SIGN_OUT_STRINGS.title}
       backButtonHref='/login'
       backButtonLabel={SIGN_OUT_STRINGS.backButtonLabel}>
-      <Button className='w-full'>
+      <Button className='w-full' asChild>
         <Link href='/'>{SIGN_OUT_STRINGS.linkLabel}</Link>
       </Button>
     </CardWrapper>

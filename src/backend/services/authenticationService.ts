@@ -11,171 +11,144 @@ import {
 } from '@/lib/errors';
 import { GoogleUser } from '@/lib/types/auth';
 import { hashPassword } from '@/lib/utils';
-import { AccountsRepository } from '../repositories/accountsRepository';
-import { ProfilesRepository } from '../repositories/profilesRepository';
-import { UsersRepository } from '../repositories/usersRepository';
-import { TokenService } from './tokenService';
+import {
+  createAccount,
+  createAccountViaGoogle,
+  getAccountByGoogleID,
+  getPasswordAccountByUserID,
+  updatePassword,
+} from '../repositories/accountsRepository';
+import { createProfile, getProfile } from '../repositories/profilesRepository';
+import {
+  createUser,
+  getUserByEmail,
+  verifyEmail,
+} from '../repositories/usersRepository';
+import {
+  createResetTokenService,
+  createVerificationTokenService,
+  deleteResetTokenService,
+  deleteVerificationTokenService,
+  getResetTokenService,
+  getVerificationTokenService,
+} from './tokenService';
 
-export class AuthenticationService {
-  private _usersRepository: UsersRepository;
-  private _profilesRepository: ProfilesRepository;
-  private _accountsRepository: AccountsRepository;
-  private _TokenService: TokenService;
+export async function registerUserService(email: string, _password: string) {
+  let user = await getUserByEmail(email);
 
-  constructor(
-    usersRepository: UsersRepository,
-    profilesRepository: ProfilesRepository,
-    accountsRepository: AccountsRepository,
-    tokenService: TokenService
-  ) {
-    this._usersRepository = usersRepository;
-    this._profilesRepository = profilesRepository;
-    this._accountsRepository = accountsRepository;
-    this._verifyPassword;
-    this._TokenService = tokenService;
+  if (!user) {
+    user = await createUser(email);
   }
 
-  async registerUser(email: string, _password: string) {
-    let user = await this._usersRepository.getUserByEmail(email);
+  const existingAccount = await getPasswordAccountByUserID(user.id);
+  if (existingAccount) throw new EmailInUseError();
 
-    if (!user) {
-      user = await this._usersRepository.createUser(email);
-    }
+  const salt = getSalt();
+  const password = await hashPassword(_password, salt);
 
-    const existingAccount =
-      await this._accountsRepository.getPasswordAccountByUserID(user.id);
-    if (existingAccount) throw new EmailInUseError();
+  await createAccount(user.id, password, 'email', salt);
+  await createProfile(user.id);
+  return { id: user.id };
+}
 
-    const salt = getSalt();
-    const password = await hashPassword(_password, salt);
+export async function forgotPasswordService(email: string) {
+  const user = await getUserByEmail(email);
+  if (!user) throw new MissingAccountError();
 
-    await this._accountsRepository.createAccount(
-      user.id,
-      password,
-      'email',
-      salt
-    );
-    await this._profilesRepository.createProfile(user.id);
-    return { id: user.id };
+  const existingAccount = await getPasswordAccountByUserID(user.id);
+  if (!existingAccount) throw new MissingAccountError();
+
+  const token = await createResetTokenService(user.id);
+  return token;
+}
+
+export async function getVerificationTokenByEmailService(email: string) {
+  const user = await getUserByEmail(email);
+  if (!user) throw new MissingAccountError();
+
+  const existingAccount = await getPasswordAccountByUserID(user.id);
+  if (!existingAccount) throw new MissingAccountError();
+
+  if (user.emailVerified) throw new AlreadyVerifiedError();
+
+  const token = await createVerificationTokenService(user.id);
+  return token;
+}
+
+export async function verifyEmailService(token: string) {
+  const existingToken = await getVerificationTokenService(token);
+
+  if (!existingToken) throw new InvalidTokenError();
+  const expirationTime = existingToken.tokenExpiresAt as unknown as number;
+  if (expirationTime < new Date().getTime()) {
+    await deleteVerificationTokenService(token);
+    throw new ExpiredTokenError();
   }
 
-  async forgotPassword(email: string) {
-    const user = await this._usersRepository.getUserByEmail(email);
-    if (!user) throw new MissingAccountError();
+  const userID = existingToken.userID;
+  await createTransactions(async (trx) => {
+    await deleteVerificationTokenService(token, trx);
+    await verifyEmail(userID, trx);
+  });
+}
 
-    const existingAccount =
-      await this._accountsRepository.getPasswordAccountByUserID(user.id);
-    if (!existingAccount) throw new MissingAccountError();
+export async function changePasswordService(
+  newPassword: string,
+  token: string
+) {
+  const existingToken = await getResetTokenService(token);
 
-    const token = await this._TokenService.createResetToken(user.id);
-    return token;
+  if (!existingToken) throw new InvalidTokenError();
+  const expirationTime = existingToken.tokenExpiresAt as unknown as number;
+  if (expirationTime < new Date().getTime()) {
+    await deleteResetTokenService(token);
+    throw new ExpiredTokenError();
   }
 
-  async getVerificationToken(email: string) {
-    const user = await this._usersRepository.getUserByEmail(email);
-    if (!user) throw new MissingAccountError();
+  const userID = existingToken.userID;
+  const salt = getSalt();
+  const password = await hashPassword(newPassword, salt);
+  await createTransactions(async (trx) => {
+    await deleteResetTokenService(token, trx);
+    await updatePassword(userID, password, salt, trx);
+  });
+}
 
-    const existingAccount =
-      await this._accountsRepository.getPasswordAccountByUserID(user.id);
-    if (!existingAccount) throw new MissingAccountError();
+async function _verifyPassword(plainTextPassword: string, userID: string) {
+  const account = await getPasswordAccountByUserID(userID);
+  if (!account) return false;
+  const { salt, password } = account;
+  if (!salt || !password) return false;
 
-    if (user.emailVerified) throw new AlreadyVerifiedError();
+  const hashedPassword = await hashPassword(plainTextPassword, salt);
+  return hashedPassword == password;
+}
 
-    const token = await this._TokenService.createVerificationToken(user.id);
-    return token;
+export async function signInService(email: string, password: string) {
+  const user = await getUserByEmail(email);
+  if (!user) throw new MissingAccountError();
+
+  const isCorrectPassword = await _verifyPassword(password, user.id);
+  if (!isCorrectPassword) throw new LoginError();
+  if (!user.emailVerified) throw new UnverifiedAccountError();
+  return { id: user.id };
+}
+
+export async function createGoogleUserService(googleUser: GoogleUser) {
+  let existingUser = await getUserByEmail(googleUser.email);
+  if (!existingUser) {
+    existingUser = await createUser(googleUser.email);
   }
 
-  async verifyEmail(token: string) {
-    const existingToken = await this._TokenService.getVerificationToken(token);
-    console.log('existingToken', existingToken);
+  await createAccountViaGoogle(existingUser.id, googleUser.sub, 'google');
+  await createProfile(existingUser.id, googleUser.name, googleUser.picture);
+  return { id: existingUser.id };
+}
 
-    if (!existingToken) throw new InvalidTokenError();
-    const expirationTime = existingToken.tokenExpiresAt as unknown as number;
-    if (expirationTime < new Date().getTime()) {
-      await this._TokenService.deleteVerificationToken(token);
-      throw new ExpiredTokenError();
-    }
-    console.log('last check');
+export async function getAccountByGoogleIdService(googleId: string) {
+  return getAccountByGoogleID(googleId);
+}
 
-    const userID = existingToken.userID;
-    await createTransactions(async (trx) => {
-      await this._TokenService.deleteVerificationToken(token, trx);
-      await this._usersRepository.verifyEmail(userID, trx);
-    });
-  }
-
-  async changePassword(newPassword: string, token: string) {
-    const existingToken = await this._TokenService.getResetToken(token);
-
-    if (!existingToken) throw new InvalidTokenError();
-    const expirationTime = existingToken.tokenExpiresAt as unknown as number;
-    if (expirationTime < new Date().getTime()) {
-      await this._TokenService.deleteResetToken(token);
-      throw new ExpiredTokenError();
-    }
-
-    const userID = existingToken.userID;
-    const salt = getSalt();
-    const password = await hashPassword(newPassword, salt);
-    await createTransactions(async (trx) => {
-      await this._TokenService.deleteResetToken(token, trx);
-      await this._accountsRepository.updatePassword(
-        userID,
-        password,
-        salt,
-        trx
-      );
-    });
-  }
-
-  private async _verifyPassword(plainTextPassword: string, userID: string) {
-    const account = await this._accountsRepository.getPasswordAccountByUserID(
-      userID
-    );
-    if (!account) return false;
-    const { salt, password } = account;
-    if (!salt || !password) return false;
-
-    const hashedPassword = await hashPassword(plainTextPassword, salt);
-    return hashedPassword == password;
-  }
-
-  async signIn(email: string, password: string) {
-    const user = await this._usersRepository.getUserByEmail(email);
-    if (!user) throw new MissingAccountError();
-
-    const isCorrectPassword = await this._verifyPassword(password, user.id);
-    if (!isCorrectPassword) throw new LoginError();
-    if (!user.emailVerified) throw new UnverifiedAccountError();
-    return { id: user.id };
-  }
-
-  async createGoogleUser(googleUser: GoogleUser) {
-    let existingUser = await this._usersRepository.getUserByEmail(
-      googleUser.email
-    );
-    if (!existingUser) {
-      existingUser = await this._usersRepository.createUser(googleUser.email);
-    }
-
-    await this._accountsRepository.createAccountViaGoogle(
-      existingUser.id,
-      googleUser.sub,
-      'google'
-    );
-    await this._profilesRepository.createProfile(
-      existingUser.id,
-      googleUser.name,
-      googleUser.picture
-    );
-    return { id: existingUser.id };
-  }
-
-  async getAccountByGoogleId(googleId: string) {
-    return this._accountsRepository.getAccountByGoogleID(googleId);
-  }
-
-  async getProfileUser(userID: string) {
-    return await this._profilesRepository.getProfile(userID);
-  }
+export async function getProfileUserService(userID: string) {
+  return await getProfile(userID);
 }
