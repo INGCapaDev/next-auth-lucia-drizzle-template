@@ -1,7 +1,9 @@
-import CardWrapper from './CardWrapper';
-
+'use client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Button } from '../ui/button';
+import CardWrapper from './CardWrapper';
 
 const SIGN_OUT_STRINGS = {
   title: 'Sign Out',
@@ -11,6 +13,10 @@ const SIGN_OUT_STRINGS = {
 };
 
 const SignOutPage = () => {
+  const router = useRouter();
+  useEffect(() => {
+    router.refresh();
+  }, [router]);
   return (
     <CardWrapper
       label={SIGN_OUT_STRINGS.label}
